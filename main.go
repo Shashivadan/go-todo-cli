@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"hello/util"
 	"log"
 	"os"
 
@@ -15,19 +15,45 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:  "create",
-				Usage: "create a csv file to add todos",
+				Usage: "help to create a todo file",
 				Action: func(ctx context.Context, c *cli.Command) error {
 					fileName := fmt.Sprintf("todos/%s.csv", c.Args().Get(0))
-
-					if c.Args().Get(0) == "" {
-						return errors.New("file name missing")
-					}
-					_, err := os.Create(fileName)
+					createfile, err := util.CreateCsvFile(fileName)
 					if err != nil {
-						fmt.Println("there is an error ", err)
 						return err
 					}
-					fmt.Println("create a file :", fileName)
+					fmt.Println(createfile)
+					return nil
+				},
+			},
+			{
+				Name:  "read",
+				Usage: "list of all todos",
+				Action: func(ctx context.Context, c *cli.Command) error {
+					fileName := "todos/shashi.csv"
+					data, err := util.ReadCsvFile(fileName)
+					if err != nil {
+						return err
+					}
+					for _, val := range data {
+						fmt.Println(val)
+					}
+					return nil
+				},
+			},
+			{
+				Name:  "add",
+				Usage: "add a todo item <task>",
+				Action: func(ctx context.Context, c *cli.Command) error {
+					todo := c.Args().First()
+
+					data, err := util.AddTodo(todo, "todos/shashi.csv")
+					if err != nil {
+						return err
+					}
+					if data != nil {
+						fmt.Println("task added")
+					}
 					return nil
 				},
 			},
