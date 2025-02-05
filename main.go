@@ -57,6 +57,19 @@ func main() {
 					return nil
 				},
 			},
+			{
+				Name:  "delete",
+				Usage: "delete a specfie to do",
+				Action: func(ctx context.Context, c *cli.Command) error {
+					todoId := c.Args().First()
+					data, err := util.DeleteTodo(todoId, "todos/shashi.csv")
+					if err != nil {
+						return err
+					}
+					fmt.Println(data)
+					return nil
+				},
+			},
 		},
 	}
 	if err := cmd.Run(context.Background(), os.Args); err != nil {

@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -75,13 +76,52 @@ func AddTodo(task string, fileName string) ([][]string, error) {
 	return data, nil
 }
 
-func DeleteTodo(number string, fileName string) (string, error) {
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDWR|os.O_WRONLY, 0644)
+func DeleteTodo(id string, fileName string) (string, error) {
+	readFile, err := os.OpenFile(fileName, os.O_RDWR, 0644)
 	if err != nil {
 		return "", err
 	}
 
-	defer file.Close()
+	reader := csv.NewReader(readFile)
 
+	data, err := reader.ReadAll()
+	if err != nil {
+		return "", err
+	}
+
+	idx, err := strconv.Atoi(id)
+	if err != nil {
+		return "", err
+	}
+
+	if len(data) < idx || idx == 0 {
+		return "", errors.New("this id is not present in todos")
+	}
+
+	updatedData := make([][]string, 0)
+	for idx, val := range data {
+		if val[0] != id {
+			if idx == 0 {
+				updatedData = append(updatedData, []string{val[0], val[1], val[2]})
+			} else {
+				updatedData = append(updatedData, []string{strconv.Itoa(len(updatedData)), val[1], val[2]})
+			}
+		}
+	}
+	readFile.Close()
+	writeFile, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return "", err
+	}
+
+	overwriteCsv := csv.NewWriter(writeFile)
+
+	err = overwriteCsv.WriteAll(updatedData)
+	if err != nil {
+		return "", err
+	}
+	defer overwriteCsv.Flush()
 	return "deleted sussufull", nil
 }
+
+func doenTodo(id string, fileName string) {}
