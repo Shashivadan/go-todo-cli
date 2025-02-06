@@ -124,4 +124,43 @@ func DeleteTodo(id string, fileName string) (string, error) {
 	return "deleted sussufull", nil
 }
 
-func doenTodo(id string, fileName string) {}
+func DoenTodo(id string, fileName string) (string, error) {
+	readFile, err := os.OpenFile(fileName, os.O_RDWR, 0644)
+	if err != nil {
+		return "", err
+	}
+	reader := csv.NewReader(readFile)
+
+	data, err := reader.ReadAll()
+	if err != nil {
+		return "", err
+	}
+
+	idx, err := strconv.Atoi(id)
+	if err != nil {
+		return "", err
+	}
+	if len(data) < idx || idx == 0 {
+		return "", errors.New("this id is not present in todos")
+	}
+	updatedData := make([][]string, 0)
+
+	for _, val := range data {
+		if val[0] == id {
+			updatedData = append(updatedData, []string{val[0], val[1], "doen"})
+			continue
+		}
+		updatedData = append(updatedData, val)
+	}
+	readFile.Close()
+	writeFile, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return "", err
+	}
+	overWriteFile := csv.NewWriter(writeFile)
+	err = overWriteFile.WriteAll(updatedData)
+	if err != nil {
+		return "", err
+	}
+	return "task completed doen", nil
+}
